@@ -1,9 +1,9 @@
-function Rolebase() {
+const Rolebase = () => {
   return (
     <div>
-      <h2>Rolebase</h2>
+      <h2>Rolebase Page (Under Development)</h2>
     </div>
   );
-}
+};
 
 export default Rolebase;
