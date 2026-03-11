@@ -101,6 +101,8 @@ return (
 <option>शेती</option>
 <option>बांधकाम</option>
 <option>शिक्षण</option>
+<option>कार्यक्रम</option>
+<option>वाहन</option>
 </select>
 
 <label>रक्कम</label>

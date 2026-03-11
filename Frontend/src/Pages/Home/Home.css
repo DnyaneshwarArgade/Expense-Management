@@ -71,13 +71,9 @@ white-space:nowrap;
 }
 
 .plus{
-background:#3fb36b;
-color:white;
-padding:10px;
-border-radius:8px;
-font-size:20px;
+color:#3fb36b;
+font-size:24px;
 }
-
 /* categories */
 
 .title{
@@ -155,12 +151,12 @@ z-index:1000;
 
 .expenseForm{
 background:white;
-width:320px;
+width:360px;
 padding:25px;
 border-radius:12px;
 display:flex;
 flex-direction:column;
-gap:10px;
+gap:6px;
 box-shadow:0 10px 25px rgba(0,0,0,0.2);
 }
 
@@ -177,6 +173,7 @@ margin-bottom:5px;
 .formHeader h2{
 margin:0;
 font-size:20px;
+color: #000;
 }
 
 /* cancel icon */
@@ -240,7 +237,7 @@ padding:0;
 }
 
 .expenseForm{
-width:85%;
+width:90%;
 padding: 15px;
 border-radius: 10px;
 }
@@ -257,12 +254,15 @@ align-items:center;
 
 .box{
 width:100%;
+padding:30px;
+min-height:120px;   
 }
 
 .addExpensee,
 .category{
 width:100%;
 font-size:18px;
+min-height:70px;
 }
 
 }
