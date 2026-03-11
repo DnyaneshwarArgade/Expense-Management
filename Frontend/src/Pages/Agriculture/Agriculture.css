@@ -1,0 +1,383 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.agriPage {
+    width: 100vw;
+    min-height: 100vh;
+    background-image: url("https://images.unsplash.com/photo-1500382017468-9049fed747ef");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin: 0;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 550px;
+    padding: 20px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+}
+
+@media (max-width:768px) {
+    .agriPage {
+        padding: 10px;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 100%;
+        padding: 18px;
+    }
+}
+
+h2 {
+    text-align: center;
+    color: green;
+}
+
+.intro {
+    color: black;
+    font-weight: bold;
+}
+
+h3 {
+    color: black;
+    text-align: center;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 10px;
+    justify-content: center;
+    margin: 8px 0;
+    background: #f2f2f2;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    color: #000;
+    font-weight: bold;
+}
+
+@media (max-width:768px) {
+
+    input,
+    select {
+        width: 90%;
+        max-width: 90%;
+        padding: 20px;
+    }
+}
+
+/* BUTTON */
+button {
+    padding: 10px 15px;
+    background: green;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px 5px;
+}
+
+button:hover {
+    background: #0b5e0b;
+}
+
+/* NAV BUTTON */
+.navBtn {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+/* TABLE */
+.tableakunkharch {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th {
+    background: green;
+    color: white;
+    padding: 12px;
+}
+
+td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: center;
+    background: #f5f5f5;
+    color: black;
+    font-weight: bold;
+}
+
+/* ICONS */
+.edit {
+    color: blue;
+    font-size: 20px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.delete {
+    color: red;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+td i {
+    display: inline-block;
+}
+
+@media (max-width:600px) {
+    td {
+        white-space: nowrap;
+    }
+}
+
+.msg {
+    background: #4caf50;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    border-radius: 5px;
+}
+
+/* MODAL */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.closeBtn {
+    margin-top: 10px;
+    background: green;
+    border: none;
+    padding: 8px;
+    width: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.modalBox {
+    position: relative;
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    width: 320px;
+}
+
+.saveBtn {
+    margin-top: 10px;
+    background: green;
+    border: none;
+    padding: 8px;
+    width: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Conclusion wrapper */
+.conclusion {
+    width: 95%;
+    max-width: 600px;
+    margin: auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    color: black;
+    font-weight: bold;
+}
+
+/* Buttons wrapper */
+.conclusionButtons {
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+    width: 100%;
+    align-items: center;
+}
+
+/* Buttons style */
+.conclusionButtons button {
+    width: 90%;
+    max-width: 180px;
+    padding: 10px 15px;
+    margin: 0;
+    cursor: pointer;
+    border-radius: 6px;
+    background: green;
+    color: white;
+    border: none;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.conclusionButtons button:hover {
+    background: #0b5e0b;
+}
+
+@media(min-width:769px) {
+    .conclusionButtons {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .conclusionButtons button {
+        width: auto;
+        min-width: 120px;
+        margin: 0 5px;
+    }
+}
+
+.recordCard {
+    position: relative;
+    background: #f5f5f5;
+    padding: 20px 15px;
+    color: #000;
+    font-weight: bold;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.cardActions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 8px;
+}
+
+.listPage {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+@media (max-width:480px) {
+    .listPage {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width:768px) {
+    .listPage {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* MOBILE */
+@media(max-width:768px) {
+    .container {
+        width: 99%;
+        padding: 20px;
+    }
+
+    table {
+        font-size: 14px;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .navBtn {
+        flex-direction: column;
+    }
+}
+
+.cardActions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.deleteCross {
+    font-size: 22px;
+    color: red;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.deleteCross:hover {
+    color: darkred;
+}
+
+.listPageButtonWrapper {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    margin-bottom: 30px;
+}
+
+.listPageButtonWrapper button {
+    padding: 12px 25px;
+    background: green;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+    width: auto;
+    min-width: 120px;
+}
+
+.listPageButtonWrapper button:hover {
+    background: #0b5e0b;
+}
+
+@media(max-width:768px) {
+    .listPageButtonWrapper {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .listPageButtonWrapper button {
+        width: 90%;
+        min-width: unset;
+    }
+}
+.deleteCard{
+    background: #ffe5e5;
+    color: red;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+}
