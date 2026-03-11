@@ -14,12 +14,15 @@ import Vehicle from "./Pages/Vehicle/Vehicle";
 // Auth Pages
 import Login from "./Pages/Auth/Login/Login";
 import Register from "./Pages/Auth/Register/Register";
-import Rolebase from "./Pages/Auth/Rolebase/rolebase";
+import Rolebase from "./Pages/Auth/Rolebase/Rolebase";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+
+        {/* ---------- Register Default Page ---------- */}
+        <Route path="/" element={<Register />} />
 
         {/* ---------- Auth Pages (Without Layout) ---------- */}
         <Route path="/login" element={<Login />} />
