@@ -120,12 +120,18 @@ text-decoration:underline;
 /* Mobile Responsive */
 @media (max-width:480px){
 
-.register-card{
-padding:25px;
+.register-container{
+  padding: 20px 16px; /* ✅ reduced top padding on mobile */
+  align-items: flex-start;
 }
 
 .register-title{
-font-size:22px;
+  margin-top: 0; /* ✅ remove extra top margin on mobile */
+  font-size:22px;
+}
+
+.register-card{
+padding:25px;
 }
 
 }
