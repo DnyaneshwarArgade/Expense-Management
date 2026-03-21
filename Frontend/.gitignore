@@ -9,11 +9,12 @@ lerna-debug.log*
 
 # Dependencies
 node_modules
-Backend/ExpressJS/node_modules
 Frontend/node_modules
+Backend/ExpressJS/node_modules
 
-# Environment files
+# Environment files (VERY IMPORTANT)
 .env
+Backend/ExpressJS/.env
 *.local
 
 # Build folders
