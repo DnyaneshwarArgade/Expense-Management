@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import "./Agriculture.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
@@ -17,7 +18,28 @@ function Agri() {
     const [fertilizer, setFertilizer] = useState([])
     const [deletedItem, setDeletedItem] = useState(null);
     const [labourWork, setLabourWork] = useState("")
-    /* local storage save */
+    const [records, setRecords] = useState([])
+    const API_URL = "http://localhost:5000/api/agriculture";
+    /* Fetch records from backend on mount */
+    useEffect(() => {
+        fetchRecords();
+    }, []);
+
+    const fetchRecords = async () => {
+        try {
+            const res = await axios.get(API_URL);
+            // Parse 'details' JSON string if necessary
+            const formatted = res.data.map(r => ({
+                ...r,
+                expenses: typeof r.details === 'string' ? JSON.parse(r.details) : (r.details || [])
+            }));
+            setRecords(formatted);
+        } catch (err) {
+            console.error("Error fetching records:", err);
+        }
+    };
+
+    /* local storage save for current session state ONLY */
     useEffect(() => {
         const data = localStorage.getItem("agriData")
         if (data) {
@@ -87,27 +109,33 @@ function Agri() {
     const profit = difference > 0 ? difference : 0
     const loss = difference < 0 ? Math.abs(difference) : 0
 
-    const saveRecord = () => {
+    const saveRecord = async () => {
         if (expenses.length === 0) {
             setMsg("खर्च नोंदवला नाही,जतन होणार नाही");
             setTimeout(() => setMsg(""), 2000);
             return;
         }
-        const old = JSON.parse(localStorage.getItem("records")) || []
+
         const newRecord = {
             crop,
             season,
             land,
-            expenses,
             totalExpense,
             income,
             profit,
-            loss
+            loss,
+            details: expenses // Details will be stored as JSON
         }
-        old.push(newRecord)
-        localStorage.setItem("records", JSON.stringify(old))
-        setMsg("नोंद जतन झाली");
-        setTimeout(() => setMsg(""), 2000);
+
+        try {
+            await axios.post(API_URL, newRecord);
+            setMsg("नोंद जतन झाली");
+            fetchRecords(); // Refresh list
+            setTimeout(() => setMsg(""), 2000);
+        } catch (err) {
+            setMsg("जतन करताना त्रुटी आली");
+            console.error(err);
+        }
     }
     const newCrop = () => {
         setCrop("")
@@ -122,13 +150,208 @@ function Agri() {
         setStep(1)
     }
 
-    const deleteRecord = (index) => {
-        const allRecords = JSON.parse(localStorage.getItem("records") || "[]");
-        allRecords.splice(index, 1);  // remove selected record permanently
-        localStorage.setItem("records", JSON.stringify(allRecords));
-        setMsg("Record deleted");      // optional
-        setTimeout(() => setMsg(""), 2000);
+    const deleteRecord = async (id) => {
+        try {
+            await axios.delete(`${API_URL}/${id}`);
+            setMsg("नोंद हटवली");
+            fetchRecords(); // Refresh list
+            setTimeout(() => setMsg(""), 2000);
+        } catch (err) {
+            setMsg("हटवताना त्रुटी आली");
+            console.error(err);
+        }
     }
+
+    const MultiSelect = ({ options, selected, onChange, placeholder }) => {
+        const [isOpen, setIsOpen] = useState(false);
+        const [searchTerm, setSearchTerm] = useState("");
+
+        const filteredOptions = options.filter(opt => {
+            const search = searchTerm.toLowerCase();
+            return (
+                opt.mr.toLowerCase().includes(search) ||
+                (opt.en && opt.en.toLowerCase().includes(search))
+            );
+        });
+
+        const isExactMatch = options.some(opt =>
+            opt.mr.toLowerCase() === searchTerm.toLowerCase() ||
+            (opt.en && opt.en.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+
+        return (
+            <div className="multi-select-container">
+                <div className="multi-select-header" onClick={() => setIsOpen(!isOpen)}>
+                    <input
+                        type="text"
+                        className="multi-select-input"
+                        placeholder={selected && selected.length > 0 ? selected.join(", ") : placeholder}
+                        value={searchTerm}
+                        onChange={(e) => {
+                            setSearchTerm(e.target.value);
+                            if (!isOpen) setIsOpen(true);
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Backspace' && searchTerm === '' && selected.length > 0) {
+                                onChange(selected.slice(0, -1));
+                            }
+                        }}
+                        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking input
+                    />
+                    <i className={`bi bi-chevron-${isOpen ? 'up' : 'down'}`}></i>
+                </div>
+                {isOpen && (
+                    <div className="multi-select-options">
+                        {filteredOptions.length > 0 ? (
+                            filteredOptions.map(opt => (
+                                <div
+                                    key={opt.mr}
+                                    className={`multi-select-option ${selected.includes(opt.mr) ? 'active' : ''}`}
+                                    onClick={() => {
+                                        if (selected.includes(opt.mr)) {
+                                            onChange(selected.filter(s => s !== opt.mr));
+                                        } else {
+                                            onChange([...selected, opt.mr]);
+                                        }
+                                    }}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={selected.includes(opt.mr)}
+                                        readOnly
+                                    />
+                                    <span>{opt.mr}</span>
+                                </div>
+                            ))
+                        ) : (
+                            searchTerm && !isExactMatch && (
+                                <div
+                                    className="multi-select-option add-new"
+                                    onClick={() => {
+                                        onChange([...selected, searchTerm]);
+                                        setSearchTerm("");
+                                    }}
+                                >
+                                    <i className="bi bi-plus-circle"></i>
+                                    <span>"{searchTerm}" जोडा</span>
+                                </div>
+                            )
+                        )}
+                        {searchTerm && filteredOptions.length > 0 && !isExactMatch && (
+                            <div
+                                className="multi-select-option add-new"
+                                onClick={() => {
+                                    onChange([...selected, searchTerm]);
+                                    setSearchTerm("");
+                                }}
+                            >
+                                <i className="bi bi-plus-circle"></i>
+                                <span>"{searchTerm}" जोडा</span>
+                            </div>
+                        )}
+                        {!searchTerm && filteredOptions.length === 0 && (
+                            <div className="no-options">निवडण्यासाठी काहीही नाही</div>
+                        )}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    const machineOptions = [
+        { mr: "ट्रॅक्टर नांगरणी", en: "tractor nangarni ploughing" },
+        { mr: "रोटाव्हेटर", en: "rotavator rotawtor" },
+        { mr: "जमीन समतल करणे", en: "leveling land leveling" },
+        { mr: "सरी तयार करणे", en: "sari making ridges" },
+        { mr: "माती भुसभुशीत करणे", en: "tilling soil tilling" },
+        { mr: "माती उलटणे", en: "soil turning" },
+        { mr: "ट्रॉलीने शेणखत आणणे", en: "manure trolley" },
+        { mr: "शेणखत पसरवणे", en: "manure spreading" }
+    ];
+
+    const seedOptions = [
+        { mr: "गहू बियाणे", en: "wheat gehu" },
+        { mr: "तांदूळ बियाणे", en: "rice tandul" },
+        { mr: "कापूस बियाणे", en: "cotton kapus" },
+        { mr: "ऊस रोपे", en: "sugarcane uss" },
+        { mr: "कांदा बियाणे", en: "onion kanda" },
+        { mr: "ज्वारी बियाणे", en: "jowar sorted sorghum" },
+        { mr: "बाजरी बियाणे", en: "bajra pearl millet" },
+        { mr: "मका बियाणे", en: "maize corn maka" },
+        { mr: "तूर बियाणे", en: "tur pigeon pea" },
+        { mr: "हरभरा बियाणे", en: "harbhara chickpea" },
+        { mr: "चना बियाणे", en: "chana gram" },
+        { mr: "मूग बियाणे", en: "moong mung" },
+        { mr: "उडीद बियाणे", en: "urad black gram" },
+        { mr: "मसूर बियाणे", en: "masoor lentil" },
+        { mr: "वाल बियाणे", en: "val field bean" },
+        { mr: "चवळी बियाणे", en: "chavli cowpea" },
+        { mr: "मटकी बियाणे", en: "matki moth bean" },
+        { mr: "सोयाबीन बियाणे", en: "soyabean soybean" },
+        { mr: "भुईमूग बियाणे", en: "groundnut peanuts bhuimug" },
+        { mr: "तीळ बियाणे", en: "til sesame" },
+        { mr: "मोहरी बियाणे", en: "mohari mustard" },
+        { mr: "सूर्यफूल बियाणे", en: "sunflower suryaful" },
+        { mr: "करडई बियाणे", en: "kardai safflower" },
+        { mr: "अळशी बियाणे", en: "alshi linseed" },
+        { mr: "हळद बियाणे", en: "halad turmeric" },
+        { mr: "आले बियाणे", en: "ale ginger" },
+        { mr: "लसूण बियाणे", en: "lasun garlic" },
+        { mr: "बटाटा बियाणे", en: "batata potato" },
+        { mr: "टोमॅटो बियाणे", en: "tomato" },
+        { mr: "वांगी बियाणे", en: "vangi brinjal" },
+        { mr: "भेंडी बियाणे", en: "bhendi okra lady finger" },
+        { mr: "मिरची बियाणे", en: "mirchi chilli" },
+        { mr: "कोबी बियाणे", en: "kobi cabbage" },
+        { mr: "फुलकोबी बियाणे", en: "fulkobi cauliflower" },
+        { mr: "पालक बियाणे", en: "palak spinach" },
+        { mr: "मेथी बियाणे", en: "methi fenugreek" },
+        { mr: "दोडका बियाणे", en: "dodka sponge gourd" },
+        { mr: "घेवडा बियाणे", en: "ghevda beans" },
+        { mr: "कारले बियाणे", en: "karle bitter gourd" },
+        { mr: "भोपळा बियाणे", en: "bhopla pumpkin" },
+        { mr: "काकडी बियाणे", en: "kakdi cucumber" },
+        { mr: "गाजर बियाणे", en: "gajar carrot" },
+        { mr: "बीट बियाणे", en: "beet beet root" },
+        { mr: "शेवगा रोपे", en: "shevga drumstick" },
+        { mr: "आंबा रोपे", en: "amba mango" },
+        { mr: "केळी रोपे", en: "keli banana" },
+        { mr: "संत्रा रोपे", en: "santra orange" },
+        { mr: "मोसंबी रोपे", en: "mosambi sweet lime" },
+        { mr: "डाळिंब रोपे", en: "dalimb pomegranate" },
+        { mr: "द्राक्षे रोपे", en: "draksha grapes" },
+        { mr: "पेरू रोपे", en: "peru guava" },
+        { mr: "लिंबू रोपे", en: "limbu lemon" },
+        { mr: "सीताफळ रोपे", en: "sitafal custard apple" },
+        { mr: "चिकू रोपे", en: "chiku sapota" },
+        { mr: "जांभूळ रोपे", en: "jambhul jamun" },
+        { mr: "पपई रोपे", en: "papai papaya" },
+        { mr: "अननस रोपे", en: "ananas pineapple" },
+        { mr: "नारळ रोपे", en: "naral coconut" },
+        { mr: "सुपारी रोपे", en: "supari arecanut" },
+        { mr: "धणे बियाणे", en: "dhane coriander" },
+        { mr: "जिरे बियाणे", en: "jire cumin" },
+        { mr: "बडीशेप बियाणे", en: "badishep fennel" },
+        { mr: "मेथीदाणे बियाणे", en: "methidane" },
+        { mr: "काळीमिरी बियाणे", en: "kalimiri black pepper" }
+    ];
+
+    const fertilizerOptions = [
+        { mr: "खत", en: "khat fertilizer manure" },
+        { mr: "औषध", en: "aushadh medicine pesticide" },
+        { mr: "फवारणी", en: "favarni spraying" }
+    ];
+
+    const labourOptions = [
+        { mr: "रोप लावणी मजुरी", en: "rop lavani planting labour" },
+        { mr: "बियाणे पेरणी मजुरी", en: "sowing perni labour" },
+        { mr: "तण काढणे मजुरी", en: "weeding tan kadhne labour" },
+        { mr: "खत टाकणे मजुरी", en: "fertilizing labour mapping" },
+        { mr: "औषध फवारणी मजुरी", en: "spraying labour mapping" },
+        { mr: "पाणी देणे मजुरी", en: "watering irrigation labour" },
+        { mr: "कापणी मजुरी", en: "harvesting kapni labour" },
+        { mr: "माल गोळा करणे मजुरी", en: "packing collecting labour" }
+    ];
 
     return (
         <div className="agriPage">
@@ -242,22 +465,12 @@ function Agri() {
                 {step === 3 && (
                     <div>
                         <h3>जमीन तयारी खर्च</h3>
-                        <input
-                            list="machineWork"
-                            placeholder="मशीन / काम"
-                            value={item}
-                            onChange={(e) => setItem(e.target.value)}
+                        <MultiSelect
+                            options={machineOptions}
+                            selected={item ? item.split(", ").filter(x => x) : []}
+                            onChange={(vals) => setItem(vals.join(", "))}
+                            placeholder="मशीन / काम निवडा"
                         />
-                        <datalist id="machineWork">
-                            <option value="ट्रॅक्टर नांगरणी"></option>
-                            <option value="रोटाव्हेटर"></option>
-                            <option value="जमीन समतल करणे"></option>
-                            <option value="सरी तयार करणे"></option>
-                            <option value="माती भुसभुशीत करणे"></option>
-                            <option value="माती उलटणे"></option>
-                            <option value="ट्रॉलीने शेणखत आणणे"></option>
-                            <option value="शेणखत पसरवणे"></option>
-                        </datalist>
                         <input
                             type="number"
                             placeholder="खर्च"
@@ -275,80 +488,12 @@ function Agri() {
                 {step === 4 && (
                     <div>
                         <h3>बियाणे खर्च</h3>
-                        <input
-                            list="seed"
+                        <MultiSelect
+                            options={seedOptions}
+                            selected={item ? item.split(", ").filter(x => x) : []}
+                            onChange={(vals) => setItem(vals.join(", "))}
                             placeholder="बियाणे निवडा"
-                            value={item}
-                            onChange={(e) => setItem(e.target.value)}
                         />
-                        <datalist id="seed">
-                            <option value="गहू बियाणे"></option>
-                            <option value="तांदूळ बियाणे"></option>
-                            <option value="कापूस बियाणे"></option>
-                            <option value="ऊस रोपे"></option>
-                            <option value="कांदा बियाणे"></option>
-                            <option value="ज्वारी बियाणे"></option>
-                            <option value="बाजरी बियाणे"></option>
-                            <option value="मका बियाणे"></option>
-                            <option value="तूर बियाणे"></option>
-                            <option value="हरभरा बियाणे"></option>
-                            <option value="चना बियाणे"></option>
-                            <option value="मूग बियाणे"></option>
-                            <option value="उडीद बियाणे"></option>
-                            <option value="मसूर बियाणे"></option>
-                            <option value="वाल बियाणे"></option>
-                            <option value="चवळी बियाणे"></option>
-                            <option value="मटकी बियाणे"></option>
-                            <option value="सोयाबीन बियाणे"></option>
-                            <option value="भुईमूग बियाणे"></option>
-                            <option value="तीळ बियाणे"></option>
-                            <option value="मोहरी बियाणे"></option>
-                            <option value="सूर्यफूल बियाणे"></option>
-                            <option value="करडई बियाणे"></option>
-                            <option value="अळशी बियाणे"></option>
-                            <option value="हळद बियाणे"></option>
-                            <option value="आले बियाणे"></option>
-                            <option value="लसूण बियाणे"></option>
-                            <option value="बटाटा बियाणे"></option>
-                            <option value="टोमॅटो बियाणे"></option>
-                            <option value="वांगी बियाणे"></option>
-                            <option value="भेंडी बियाणे"></option>
-                            <option value="मिरची बियाणे"></option>
-                            <option value="कोबी बियाणे"></option>
-                            <option value="फुलकोबी बियाणे"></option>
-                            <option value="पालक बियाणे"></option>
-                            <option value="मेथी बियाणे"></option>
-                            <option value="दोडका बियाणे"></option>
-                            <option value="घेवडा बियाणे"></option>
-                            <option value="कारले बियाणे"></option>
-                            <option value="भोपळा बियाणे"></option>
-                            <option value="काकडी बियाणे"></option>
-                            <option value="गाजर बियाणे"></option>
-                            <option value="बीट बियाणे"></option>
-                            <option value="शेवगा रोपे"></option>
-
-                            <option value="आंबा रोपे"></option>
-                            <option value="केळी रोपे"></option>
-                            <option value="संत्रा रोपे"></option>
-                            <option value="मोसंबी रोपे"></option>
-                            <option value="डाळिंब रोपे"></option>
-                            <option value="द्राक्षे रोपे"></option>
-                            <option value="पेरू रोपे"></option>
-                            <option value="लिंबू रोपे"></option>
-                            <option value="सीताफळ रोपे"></option>
-                            <option value="चिकू रोपे"></option>
-                            <option value="जांभूळ रोपे"></option>
-                            <option value="पपई रोपे"></option>
-                            <option value="अननस रोपे"></option>
-                            <option value="नारळ रोपे"></option>
-                            <option value="सुपारी रोपे"></option>
-
-                            <option value="धणे बियाणे"></option>
-                            <option value="जिरे बियाणे"></option>
-                            <option value="बडीशेप बियाणे"></option>
-                            <option value="मेथीदाणे बियाणे"></option>
-                            <option value="काळीमिरी बियाणे"></option>
-                        </datalist>
                         <input
                             type="number"
                             placeholder="किंमत"
@@ -366,18 +511,12 @@ function Agri() {
                 {step === 5 && (
                     <div>
                         <h3>खत / औषध खर्च</h3>
-                        <select
-                            multiple
-                            onChange={(e) => {
-                                const selected = Array.from(e.target.selectedOptions, option => option.value);
-                                setFertilizer(selected);
-                                setItem(selected.join(", "));
-                            }}
-                        >
-                            <option value="खत">खत</option>
-                            <option value="औषध">औषध</option>
-                            <option value="फवारणी">फवारणी</option>
-                        </select>
+                        <MultiSelect
+                            options={fertilizerOptions}
+                            selected={item ? item.split(", ").filter(x => x) : []}
+                            onChange={(vals) => setItem(vals.join(", "))}
+                            placeholder="खत / औषध निवडा"
+                        />
                         <input
                             type="number"
                             placeholder="खर्च"
@@ -394,23 +533,12 @@ function Agri() {
                 {step === 6 && (
                     <div>
                         <h3>मजुरी खर्च</h3>
-
-                        <input
-                            list="labour"
-                            placeholder="मजुरी प्रकार"
-                            value={item}
-                            onChange={(e) => setItem(e.target.value)}
+                        <MultiSelect
+                            options={labourOptions}
+                            selected={item ? item.split(", ").filter(x => x) : []}
+                            onChange={(vals) => setItem(vals.join(", "))}
+                            placeholder="मजुरी प्रकार निवडा"
                         />
-                        <datalist id="labour">
-                            <option value="रोप लावणी मजुरी"></option>
-                            <option value="बियाणे पेरणी मजुरी"></option>
-                            <option value="तण काढणे मजुरी"></option>
-                            <option value="खत टाकणे मजुरी"></option>
-                            <option value="औषध फवारणी मजुरी"></option>
-                            <option value="पाणी देणे मजुरी"></option>
-                            <option value="कापणी मजुरी"></option>
-                            <option value="माल गोळा करणे मजुरी"></option>
-                        </datalist>
                         <input
                             type="number"
                             placeholder="खर्च"
@@ -434,33 +562,35 @@ function Agri() {
                 {step === 7 && (
                     <div>
                         <h3>एकूण खर्च</h3>
-                        <table className="tableakunkharch">
-                            <thead>
-                                <tr>
-                                    <th>उद्देश</th>
-                                    <th>खर्च</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {expenses.map((e, i) => (
-                                    <tr key={i}>
-                                        <td>{e.item}</td>
-                                        <td>₹ {e.cost}</td>
-                                        <td>
-                                            <i
-                                                className="bi bi-pencil-square edit"
-                                                onClick={() => openEdit(i)}
-                                            ></i>
-                                            <i
-                                                className="bi bi-trash delete"
-                                                onClick={() => deleteExpense(i)}
-                                            ></i>
-                                        </td>
+                        <div className="table-wrapper">
+                            <table className="tableakunkharch">
+                                <thead>
+                                    <tr>
+                                        <th>उद्देश</th>
+                                        <th>खर्च</th>
+                                        <th>Action</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {expenses.map((e, i) => (
+                                        <tr key={i}>
+                                            <td>{e.item}</td>
+                                            <td>₹ {e.cost}</td>
+                                            <td>
+                                                <i
+                                                    className="bi bi-pencil-square edit"
+                                                    onClick={() => openEdit(i)}
+                                                ></i>
+                                                <i
+                                                    className="bi bi-trash delete"
+                                                    onClick={() => deleteExpense(i)}
+                                                ></i>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                         <h3>Total Expense : ₹ {totalExpense}</h3>
                         <div className="navBtn">
                             <button onClick={() => setStep(6)}>मागे</button>
@@ -514,7 +644,7 @@ function Agri() {
 
                         <div className="conclusionButtons">
                             <button onClick={() => setStep(8)}>मागे</button>
-                            <button onClick={saveRecord}>Save</button>
+                            <button onClick={saveRecord}>जतन करा</button>
                             <button onClick={() => setStep(10)}>खर्च यादी</button>
                         </div>
                     </div>
@@ -523,8 +653,8 @@ function Agri() {
                     <div className="listPageContainer">
                         <h3>खर्च यादी</h3>
                         <div className="listPage">
-                            {JSON.parse(localStorage.getItem("records") || "[]").map((r, i) => (
-                                <div className="recordCard" key={i}>
+                            {records.map((r, i) => (
+                                <div className="recordCard" key={r.id || i}>
                                     <h4>पिक : {r.crop}</h4>
                                     <p>जमीन : {r.land}</p>
                                     <p>एकूण खर्च : ₹ {r.totalExpense}</p>
@@ -532,7 +662,7 @@ function Agri() {
                                     <p style={{ color: "green" }}>नफा : ₹ {r.profit}</p>
                                     <p style={{ color: "red" }}>तोटा : ₹ {r.loss}</p>
                                     <div className="cardActions">
-                                        <i className="bi bi-x-circle deleteCross" onClick={() => deleteRecord(i)}></i>
+                                        <i className="bi bi-x-circle deleteCross" onClick={() => deleteRecord(r.id)}></i>
                                     </div>
                                 </div>
                             ))}

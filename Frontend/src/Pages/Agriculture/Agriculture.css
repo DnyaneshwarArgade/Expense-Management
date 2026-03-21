@@ -10,36 +10,43 @@ body {
 }
 
 .agriPage {
-    width: 100vw;
+    width: 100%;
     min-height: 100vh;
     background-image: url("https://images.unsplash.com/photo-1500382017468-9049fed747ef");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    background-attachment: fixed;
     margin: 0;
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
+    padding: 20px;
 }
 
 .container {
     width: 100%;
-    max-width: 550px;
-    padding: 20px;
-    margin: 0 auto;
+    max-width: 850px;
+    padding: 30px;
+    margin: 20px auto;
     background: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width:768px) {
     .agriPage {
         padding: 10px;
+        background-attachment: scroll;
+        /* Better for mobile performance */
     }
 
     .container {
         width: 100%;
         max-width: 100%;
-        padding: 18px;
+        padding: 15px;
+        margin: 10px auto;
     }
 }
 
@@ -76,9 +83,9 @@ select {
 
     input,
     select {
-        width: 90%;
-        max-width: 90%;
-        padding: 20px;
+        width: 100%;
+        padding: 12px;
+        font-size: 14px;
     }
 }
 
@@ -109,6 +116,12 @@ button:hover {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 15px;
 }
 
 th {
@@ -293,6 +306,12 @@ td i {
 
 @media (min-width:768px) {
     .listPage {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width:1024px) {
+    .listPage {
         grid-template-columns: repeat(4, 1fr);
     }
 }
@@ -372,7 +391,8 @@ td i {
         min-width: unset;
     }
 }
-.deleteCard{
+
+.deleteCard {
     background: #ffe5e5;
     color: red;
     padding: 10px;
@@ -380,4 +400,147 @@ td i {
     border-radius: 8px;
     text-align: center;
     font-weight: bold;
+}
+
+/* MULTI SELECT CUSTOM */
+.multi-select-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+.multi-select-header {
+    background: #f2f2f2;
+    border: 1px solid #ccc;
+    padding: 0 12px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-weight: bold;
+    min-height: 48px;
+    text-align: left;
+}
+
+.multi-select-input {
+    width: 90%;
+    background: transparent;
+    border: none;
+    padding: 10px 0;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    outline: none;
+}
+
+.multi-select-input::placeholder {
+    color: #666;
+    font-weight: normal;
+}
+
+.selected-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90%;
+    color: #333;
+}
+
+.multi-select-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 10px;
+}
+
+.multi-select-option {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+    text-align: left;
+}
+
+.multi-select-option:hover {
+    background: #f0fdf4;
+}
+
+.multi-select-option.active {
+    background: #dcfce7;
+}
+
+.multi-select-option input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    margin: 0 12px 0 0 !important;
+    cursor: pointer;
+}
+
+.multi-select-option span {
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+}
+
+.no-options {
+    padding: 15px;
+    text-align: center;
+    color: #777;
+    font-style: italic;
+}
+
+.multi-select-option.add-new {
+    background: #e7f3ff;
+    color: #007bff;
+    font-weight: bold;
+    border: 1px dashed #007bff;
+    margin-top: 5px;
+    justify-content: center;
+    gap: 8px;
+}
+
+.multi-select-option.add-new:hover {
+    background: #d0e7ff;
+}
+
+.multi-select-option.add-new i {
+    font-size: 18px;
+}
+
+.close-dropdown-btn {
+    width: 100%;
+    margin: 10px 0 0 0 !important;
+    background: #16a34a !important;
+    color: white !important;
+    padding: 10px !important;
+    border-radius: 6px !important;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+}
+
+.close-dropdown-btn:hover {
+    background: #15803d !important;
+}
+
+@media (max-width: 768px) {
+    .multi-select-header {
+        padding: 14px;
+        font-size: 14px;
+    }
+
+    .multi-select-option span {
+        font-size: 14px;
+    }
 }
