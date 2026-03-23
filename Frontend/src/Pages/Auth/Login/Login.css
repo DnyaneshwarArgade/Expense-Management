@@ -197,6 +197,7 @@ html, body {
 @media (max-width: 480px) {
   .login-card {
     padding: 25px;
+    margin-top: 60px;
   }
 
   .login-title {
